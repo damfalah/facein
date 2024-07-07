@@ -1,5 +1,7 @@
 streamlit
-face-recognition
+face_recognition
 pandas
 opencv-python
 numpy
+Pillow
+dlib
