@@ -3,6 +3,13 @@ import streamlit.components.v1 as components
 from secrets import choice
 import streamlit as st
 
+import os
+import subprocess
+
+# Install CMake if not already installed
+if os.system("cmake --version") != 0:
+    subprocess.check_call(["pip", "install", "cmake"])
+    
 #opencv library
 import face_recognition
 from datetime import datetime
