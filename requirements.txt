@@ -4,5 +4,4 @@ pandas
 opencv-python
 numpy
 Pillow
-dlib
-cmake
+https://files.pythonhosted.org/packages/97/e7/0c408f2f1a1e5563d7d7d7d5b7ea8b7d3ef9ab067482c5df2df54011b41c/dlib-19.22.0-cp39-cp39-manylinux2014_x86_64.whl
