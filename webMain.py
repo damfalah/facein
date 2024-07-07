@@ -9,6 +9,12 @@ import subprocess
 # Install CMake if not already installed
 if os.system("cmake --version") != 0:
     subprocess.check_call(["pip", "install", "cmake"])
+
+# Install dlib if not already installed
+try:
+    import dlib
+except ImportError:
+    subprocess.check_call(["pip", "install", "dlib"])
     
 #opencv library
 import face_recognition
