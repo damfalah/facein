@@ -1,8 +1,8 @@
 streamlit
-dlib-bin
+dlib
 face-recognition
 opencv-python
-pandas==2.2.2
-Pillow==10.4.0
-numpy==2.0.0
-pip==24.0
+pandas
+Pillow
+numpy
+pip
