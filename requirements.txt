@@ -1,7 +1,5 @@
 streamlit
-face_recognition
-cmake
-opencv-python-headless
+face-recognition
 pandas
-Pillow
+opencv-python
 numpy
