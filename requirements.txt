@@ -1,5 +1,5 @@
 streamlit
-https://raw.githubusercontent.com/damfalah/facein/main/whl/dlib-19.22.99-cp39-cp39-win_amd64.whl
+dlib==19.22.99
 face-recognition==1.3.0
 opencv-python
 pandas==2.2.2
