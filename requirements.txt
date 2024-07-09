@@ -1,8 +1,8 @@
 streamlit
+cmake
+dlib
 face-recognition
 pandas
 opencv-python
 numpy
 Pillow
-dlib
-cmake
