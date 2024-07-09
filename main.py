@@ -4,7 +4,7 @@ import sys
 def install_packages():
     # Upgrade pip
     subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-    
+
     # Install packages from requirements.txt
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
