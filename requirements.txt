@@ -1,5 +1,4 @@
 streamlit
---upgrade pip
 cmake
 dlib
 face-recognition
