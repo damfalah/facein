@@ -1,8 +1,6 @@
-#WEB library
+# Required libraries
 import streamlit.components.v1 as components
 import streamlit as st
-
-#opencv library
 import face_recognition
 from datetime import datetime
 from PIL import Image
@@ -12,71 +10,96 @@ import cv2
 import os
 import time
 
-FRAME_WINDOW = st.image([]) #frame window
+# Initialize variables
+FRAME_WINDOW = st.image([])
 
-hhide_st_style = """ 
+# Hide Streamlit default menu
+hide_st_style = """ 
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             </style>
             """
-st.markdown(hhide_st_style, unsafe_allow_html=True) #hide streamlit menu
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
-menu = ["HOME", "DETEKSI KEHADIRAN", "REGISTER DATA", "DAFTAR PRESENSI", "HAPUS DATA"] #menu
-
-#sidebar
+menu = ["HOME", "DETEKSI KEHADIRAN", "REGISTER DATA", "DAFTAR PRESENSI", "HAPUS DATA"]
 st.sidebar.image('static/images/IN.png', width=100)
 st.sidebar.title("faceIN")
-choice = st.sidebar.selectbox("Menu", menu) #sidebar menu
+choice = st.sidebar.selectbox("Menu", menu)
 
-path = 'absensi' #path to save image
-images = [] #list of image
-classNames = [] #list of class
-myList = os.listdir(path) #list of image
-for cl in myList: #loop
-    classNames.append(os.path.splitext(cl)[0]) #split image name
+path = 'absensi'
+images = []
+classNames = []
+myList = os.listdir(path)
+for cl in myList:
+    classNames.append(os.path.splitext(cl)[0])
 
-col1, col2, col3 = st.columns(3) #columns
-cap = cv2.VideoCapture(0) #capture video
+cap = cv2.VideoCapture(0)
 
+# Face recognition functions
+def findEncodings(images):
+    encodeList = []
+    for img in images:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        encodings = face_recognition.face_encodings(img)
+        if encodings:
+            encode = encodings[0]
+            encodeList.append(encode)
+        else:
+            print(f"Face not found in {img}")
+    return encodeList
+
+def faceList(name, selected_course):
+    with open('absensi.csv', 'r+') as f:
+        myDataList = f.readlines()
+        dateToday = datetime.now().strftime('%d-%m-%Y')
+        for line in myDataList:
+            entry = line.split(',')
+            if len(entry) >= 5:
+                entryName = entry[0]
+                entryDate = entry[3].strip()
+                entryCourse = entry[4].strip()
+                if entryName == name and entryDate == dateToday and entryCourse == selected_course:
+                    return
+        now = datetime.now()
+        dtString = now.strftime('%H:%M:%S')
+        f.writelines(f'\n{name},{dtString},{dateToday},{selected_course}')
+
+# Detect attendance
 if choice == 'DETEKSI KEHADIRAN': 
     st.markdown("<h2 style='text-align: center; color: white;'>DETEKSI KEHADIRAN</h2>", unsafe_allow_html=True)
-    run = st.checkbox("Jalankan kamera") #checkbox
-    if run == True:
-        for cl in myList: #loop
-            curlImg = cv2.imread(f'{path}/{cl}') #read image
+    courses = ["Grafik Komputer 2", "Rekayasa Komputasional", "Konsep Data Mining", "Sistem Basis Data 2"]
+    selected_course = st.selectbox("Pilih mata kuliah:", courses)
+    st.write(f"Anda memilih mata kuliah: {selected_course}")
+    run = st.checkbox("Jalankan kamera")
+
+    if run:
+        for cl in myList:
+            curlImg = cv2.imread(f'{path}/{cl}')
             images.append(curlImg)
         print(classNames)
 
-        def findEncodings(images): #find encoding
-            encodeList = []
-            for img in images:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                encodings = face_recognition.face_encodings(img)
-                if encodings:
-                    encode = encodings[0]
-                    encodeList.append(encode)
-                else:
-                    print(f"wajah tidak ditemukan {img}")
-            return encodeList
+        encodeListUnknown = findEncodings(images)
+        print('Encoding complete!')
 
-        def faceList(name):
+        def faceList(filename, selected_course):
+            # Extract NPM and name from filename
+            npm, name = os.path.splitext(filename)[0].split('_', 1)
             with open('absensi.csv', 'r+') as f:
                 myDataList = f.readlines()
                 dateToday = datetime.now().strftime('%d-%m-%Y')
                 for line in myDataList:
                     entry = line.split(',')
-                    if len(entry) >= 3:
-                        entryName = entry[0]
-                        entryDate = entry[2].strip()
-                        if entryName == name and entryDate == dateToday:
-                            return  # berhenti menambahkan data jika sudah hadir
+                    if len(entry) >= 5:
+                        entryNPM = entry[0]
+                        entryName = entry[1]
+                        entryDate = entry[3].strip()
+                        entryCourse = entry[4].strip()
+                        if entryNPM == npm and entryName == name and entryDate == dateToday and entryCourse == selected_course:
+                            return
                 now = datetime.now()
                 dtString = now.strftime('%H:%M:%S')
-                f.writelines(f'\n{name},{dtString},{dateToday}')
-
-        encodeListUnknown = findEncodings(images)
-        print('encoding complete!')
+                f.writelines(f'\n{npm},{name},{dtString},{dateToday},{selected_course}')
 
         while True:
             success, img = cap.read()
@@ -88,99 +111,139 @@ if choice == 'DETEKSI KEHADIRAN':
             for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
                 matches = face_recognition.compare_faces(encodeListUnknown, encodeFace)
                 faceDis = face_recognition.face_distance(encodeListUnknown, encodeFace)
-                #print(faceDis)
-                matchesIndex = np.argmin(faceDis)
-                
-                y1, x2, y2, x1 = faceLoc
-                y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
 
-                if matches[matchesIndex]:
-                    name = classNames[matchesIndex].upper()
-                    print(name)
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv2.FILLED)
-                    cv2.putText(img, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-                    faceList(name)
+                if len(faceDis) > 0:
+                    matchesIndex = np.argmin(faceDis)
+                    
+                    y1, x2, y2, x1 = faceLoc
+                    y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
 
-                    time.sleep(3)
-                
+                    if matches[matchesIndex]:
+                        filename = myList[matchesIndex]
+                        name = classNames[matchesIndex].upper()
+                        print(name)
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv2.FILLED)
+                        cv2.putText(img, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+                        faceList(filename, selected_course)
+                        time.sleep(3)
+                    else:
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 0, 255), cv2.FILLED)
+                        cv2.putText(img, "Unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
                 else:
                     y1, x2, y2, x1 = faceLoc
                     y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
                     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
                     cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 0, 255), cv2.FILLED)
                     cv2.putText(img, "Unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+
+            # Convert back to BGR for display
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             FRAME_WINDOW.image(img)
             cv2.waitKey(1)
-    else:
-        pass
 
-# Register menu
+
+# Register data
 elif choice == 'REGISTER DATA':
     st.markdown("<h2 style='text-align: center; color: white;'>REGISTER DATA</h2>", unsafe_allow_html=True)
-        
-    # Function to load image from bytes
+    
     def load_image(image_file):
         img = Image.open(image_file)
         return img
 
-    # Function to capture image from camera
     def capture_image():
         cap = cv2.VideoCapture(0)
         ret, frame = cap.read()
         cap.release()
         return frame
 
-    # Input for name
+    def check_existing_npm(npm):
+        for file in os.listdir("absensi"):
+            if file.startswith(f"{npm}_"):
+                return True
+        return False
+
+    user_npm = st.text_input("Masukkan NPM:")
+    user_npm = str(user_npm)
     user_name = st.text_input("Masukkan nama:")
-    
+    st.write("Harap bersiap sebelum mengambil gambar!")
     st.write("Klik tombol dibawah ini untuk mengambil gambar sebagai data wajah")
     capture_btn = st.button("Mengambil Gambar")
     
     if capture_btn:
-        if user_name == "":
-            st.warning("Tolong masukkan nama sebelum mengambil gambar.")
+        if user_npm == "" or user_name == "":
+            st.warning("Tolong masukkan NPM dan nama sebelum mengambil gambar.")
         else:
-            img = capture_image()
-            if img is not None:
-                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                img_pil = Image.fromarray(img_rgb)
-                st.image(img_pil, caption="Captured Image")
-                
-                # Save the captured image
-                if not os.path.exists("absensi"):
-                    os.makedirs("absensi")
-                
-                img_pil.save(os.path.join("absensi", f"{user_name}.png"))
-                st.success(f"Saved Captured Image as {user_name}.png")
+            if check_existing_npm(user_npm):
+                st.warning(f"NPM {user_npm} sudah terdaftar. Tolong masukkan NPM yang berbeda.")
+            else:
+                img = capture_image()
+                if img is not None:
+                    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    img_pil = Image.fromarray(img_rgb)
+                    st.image(img_pil, caption="Captured Image")
+                    
+                    if not os.path.exists("absensi"):
+                        os.makedirs("absensi")
+                    
+                    img_pil.save(os.path.join("absensi", f"{user_npm}_{user_name}.png"))
+                    st.success(f"Saved Captured Image as {user_npm}_{user_name}.png")
 
-#daftar presensi menu
+# Display attendance
 elif choice == 'DAFTAR PRESENSI':
     st.markdown("<h2 style='text-align: center; color: white;'>DAFTAR KEHADIRAN</h2>", unsafe_allow_html=True)
-    if os.path.exists('absensi.csv'):
-        df = pd.read_csv('absensi.csv', header=None, names=['NAMA', 'WAKTU HADIR', 'TANGGAL'])
-        df = df.dropna(subset=['TANGGAL'])  # Drop rows with missing dates
-        unique_dates = df['TANGGAL'].unique()
-        for date in unique_dates:
-            st.write(f"### Daftar Kehadiran Tanggal {date}")
-            date_df = df[df['TANGGAL'] == date]
-            st.write(date_df)
+    
+    df = pd.read_csv('absensi.csv', header=None, names=['NPM', 'NAMA', 'WAKTU HADIR', 'TANGGAL', 'MATA KULIAH'])
+    df['NPM'] = df['NPM'].astype(str)
+
+    if df.empty:
+        st.write("Tidak ada data kehadiran yang tersedia")
     else:
-        st.write("Data tidak ditemukan")
+        df = df.dropna(subset=['TANGGAL'])
+        unique_courses = df['MATA KULIAH'].unique()
+        
+        for course in unique_courses:
+            st.write(f"### Daftar Kehadiran Mata Kuliah {course}")
+            course_df = df[df['MATA KULIAH'] == course]
+            unique_dates = course_df['TANGGAL'].unique()
+            
+            for date in unique_dates:
+                st.write(f"##### Tanggal {date}")
+                date_df = course_df[course_df['TANGGAL'] == date]
+                st.write(date_df)
+                
+                # Add button to delete data for specific course and date
+                delete_button = st.button(f"Hapus Data {course} - {date}", key=f"{course}_{date}")
+                
+                if delete_button:
+                    df = df[~((df['MATA KULIAH'] == course) & (df['TANGGAL'] == date))]
+                    df.to_csv('absensi.csv', index=False, header=False)
+                    st.success(f"Data untuk {course} pada tanggal {date} berhasil dihapus.")
+                    st.experimental_rerun()
+
+        # Button to delete all data in the CSV
+        if st.button("Hapus Semua Data"):
+            open('absensi.csv', 'w').close()  # Clear the file
+            st.success("Semua data berhasil dihapus.")
+            st.experimental_rerun()
 
 #home menu        
 elif choice == 'HOME':
     st.title("Selamat datang di faceIN!")
     
     st.write("""
-    faceIN adalah sebuah sistem inovatif yang dirancang untuk memudahkan para pengajar dalam mengambil kehadiran siswa atau mahasiswanya. Menggunakan teknologi face recognition yang canggih, faceIN mampu mengenali wajah dengan akurat dan mencatat data kehadiran secara otomatis dan ada waktu kehadirannya.
+    faceIN adalah sebuah sistem inovatif yang dirancang untuk memudahkan para dosen dalam mengambil kehadiran mahasiswanya. Menggunakan teknologi face recognition, faceIN mampu mengenali wajah dengan akurat dan mencatat data kehadiran secara otomatis.
     """)
 
-    st.subheader("Fitur:")
-    
+    st.subheader("Cara Pemakaian Sistem:")
+
     st.write("""
-    - **Pendeteksian Wajah yang Akurat:** Dengan algoritma face recognition yang canggih, faceIN dapat mengenali wajah setiap siswa atau mahasiswa dengan tingkat akurasi yang tinggi.
-    - **Pencatatan Kehadiran Otomatis:** Data kehadiran siswa atau mahasiswa dicatat secara otomatis dan real-time waktu kehadirannya.
+    - **Menu HOME** berisikan penjelasan dan cara pemakaian sistem.
+    - **Menu DETEKSI KEHADIRAN** digunakan untuk mencatat kehadiran mahasiswa menggunakan kamera.
+    - **Menu REGISTER DATA** berfungsi untuk mengambil data mahasiswa, dengan cara masukkan NPM dan Nama kemudian difoto agar data mahasiswa didapatkan.
+    - **Menu DAFTAR PRESENSI** merupakan menu yang menampilkan hasil dari pencatatan kehadiran mahasiswa yang dicatat sesuai dengan waktu terdeteksinya, dan dikumpulkan berdasarkan tanggal dan mata kuliahnya. Jika daftar kehadirannya sudah tidak diperlukan dapat dihapus dengan tombol yang disediakan, dapat dihapus tabel yang diinginkan atau keseluruhan tabel yang ada.
+    - **Menu HAPUS DATA** berguna untuk menghapus data mahasiswa yang tersimpan, sekiranya ada kesalahan data saat registrasi atau data tidak diperlukan lagi datanya dapat dihapus.
     """)
 
     st.write("Dengan faceIN proses absensi menjadi lebih efisien dan akurat, sehingga Anda dapat fokus pada pengajaran dan pembelajaran yang lebih baik. Selamat menggunakan faceIN!")
