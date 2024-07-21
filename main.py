@@ -1,4 +1,4 @@
-# Required libraries
+# Library yang digunakan
 import streamlit.components.v1 as components
 import streamlit as st
 import face_recognition
@@ -10,19 +10,10 @@ import cv2
 import os
 import time
 
-# Initialize variables
+# inisiasi variabel
 FRAME_WINDOW = st.image([])
 
-# Hide Streamlit default menu
-hide_st_style = """ 
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
-
-menu = ["HOME", "DETEKSI KEHADIRAN", "REGISTER DATA", "DAFTAR PRESENSI", "HAPUS DATA"]
+menu = ["HOME", "DETEKSI KEHADIRAN", "REGISTER DATA", "DAFTAR PRESENSI", "HAPUS DATA MAHASISWA"]
 st.sidebar.image('static/images/IN.png', width=100)
 st.sidebar.title("faceIN")
 choice = st.sidebar.selectbox("Menu", menu)
@@ -65,7 +56,7 @@ def faceList(name, selected_course):
         dtString = now.strftime('%H:%M:%S')
         f.writelines(f'\n{name},{dtString},{dateToday},{selected_course}')
 
-# Detect attendance
+# Deteksi Kehadiran
 if choice == 'DETEKSI KEHADIRAN': 
     st.markdown("<h2 style='text-align: center; color: white;'>DETEKSI KEHADIRAN</h2>", unsafe_allow_html=True)
     courses = ["Grafik Komputer 2", "Rekayasa Komputasional", "Konsep Data Mining", "Sistem Basis Data 2"]
@@ -83,7 +74,6 @@ if choice == 'DETEKSI KEHADIRAN':
         print('Encoding complete!')
 
         def faceList(filename, selected_course):
-            # Extract NPM and name from filename
             npm, name = os.path.splitext(filename)[0].split('_', 1)
             with open('absensi.csv', 'r+') as f:
                 myDataList = f.readlines()
@@ -138,7 +128,7 @@ if choice == 'DETEKSI KEHADIRAN':
                     cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 0, 255), cv2.FILLED)
                     cv2.putText(img, "Unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
 
-            # Convert back to BGR for display
+            # mengkonvert warna yang ditampilkan
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             FRAME_WINDOW.image(img)
             cv2.waitKey(1)
@@ -190,7 +180,7 @@ elif choice == 'REGISTER DATA':
                     img_pil.save(os.path.join("absensi", f"{user_npm}_{user_name}.png"))
                     st.success(f"Saved Captured Image as {user_npm}_{user_name}.png")
 
-# Display attendance
+# Daftar Presensi
 elif choice == 'DAFTAR PRESENSI':
     st.markdown("<h2 style='text-align: center; color: white;'>DAFTAR KEHADIRAN</h2>", unsafe_allow_html=True)
     
@@ -213,7 +203,7 @@ elif choice == 'DAFTAR PRESENSI':
                 date_df = course_df[course_df['TANGGAL'] == date]
                 st.write(date_df)
                 
-                # Add button to delete data for specific course and date
+                # Tombol menghapus tabel
                 delete_button = st.button(f"Hapus Data {course} - {date}", key=f"{course}_{date}")
                 
                 if delete_button:
@@ -222,13 +212,13 @@ elif choice == 'DAFTAR PRESENSI':
                     st.success(f"Data untuk {course} pada tanggal {date} berhasil dihapus.")
                     st.experimental_rerun()
 
-        # Button to delete all data in the CSV
+        # Tombol menghapus semua data
         if st.button("Hapus Semua Data"):
-            open('absensi.csv', 'w').close()  # Clear the file
+            open('absensi.csv', 'w').close()  # menghapus data file
             st.success("Semua data berhasil dihapus.")
             st.experimental_rerun()
 
-#home menu        
+# Home        
 elif choice == 'HOME':
     st.title("Selamat datang di faceIN!")
     
@@ -248,11 +238,11 @@ elif choice == 'HOME':
 
     st.write("Dengan faceIN proses absensi menjadi lebih efisien dan akurat, sehingga Anda dapat fokus pada pengajaran dan pembelajaran yang lebih baik. Selamat menggunakan faceIN!")
 
-
-elif choice == "HAPUS DATA":
-    st.markdown("<h2 style='text-align: center; color: white;'>HAPUS DATA</h2>", unsafe_allow_html=True)
+# Hapus Data Mahasiswa
+elif choice == "HAPUS DATA MAHASISWA":
+    st.markdown("<h2 style='text-align: center; color: white;'>HAPUS DATA MAHASISWA</h2>", unsafe_allow_html=True)
     
-    # Function to delete a face data file
+    # function menghapus data wajah
     def delete_face_data(file_name):
         file_path = os.path.join("absensi", file_name)
         if os.path.exists(file_path):
@@ -261,7 +251,7 @@ elif choice == "HAPUS DATA":
         else:
             return False
     
-    # Display the list of registered names with delete options
+    # Menampilkan list data yang ada
     if len(myList) > 0:
         selected_name = st.selectbox("Pilih nama untuk dihapus datanya", classNames)
         delete_btn = st.button("Hapus Data Wajah")
