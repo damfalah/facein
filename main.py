@@ -260,8 +260,8 @@ elif choice == "HAPUS DATA MAHASISWA":
             file_name = f"{selected_name}.png"
             success = delete_face_data(file_name)
             if success:
-                st.success(f"Data wajah untuk {selected_name} berhasil dihapus.")
+                st.success(f"Data {selected_name} berhasil dihapus.")
             else:
-                st.error(f"Data wajah untuk {selected_name} tidak ditemukan.")
+                st.error(f"Data {selected_name} tidak ditemukan.")
     else:
-        st.write("Tidak ada data wajah yang terdaftar.")
+        st.write("Tidak ada data mahasiswa yang terdaftar.")
