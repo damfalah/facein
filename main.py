@@ -233,7 +233,7 @@ elif choice == 'HOME':
     - **Menu DETEKSI KEHADIRAN** digunakan untuk mencatat kehadiran mahasiswa menggunakan kamera.
     - **Menu REGISTER DATA** berfungsi untuk mengambil data mahasiswa, dengan cara masukkan NPM dan Nama kemudian difoto agar data mahasiswa didapatkan.
     - **Menu DAFTAR PRESENSI** merupakan menu yang menampilkan hasil dari pencatatan kehadiran mahasiswa yang dicatat sesuai dengan waktu terdeteksinya, dan dikumpulkan berdasarkan tanggal dan mata kuliahnya. Jika daftar kehadirannya sudah tidak diperlukan dapat dihapus dengan tombol yang disediakan, dapat dihapus tabel yang diinginkan atau keseluruhan tabel yang ada.
-    - **Menu HAPUS DATA** berguna untuk menghapus data mahasiswa yang tersimpan, sekiranya ada kesalahan data saat registrasi atau data tidak diperlukan lagi datanya dapat dihapus.
+    - **Menu HAPUS DATA MAHASISWA** berguna untuk menghapus data mahasiswa yang tersimpan, sekiranya ada kesalahan data saat registrasi atau data tidak diperlukan lagi datanya dapat dihapus.
     """)
 
     st.write("Dengan faceIN proses absensi menjadi lebih efisien dan akurat, sehingga Anda dapat fokus pada pengajaran dan pembelajaran yang lebih baik. Selamat menggunakan faceIN!")
@@ -254,7 +254,7 @@ elif choice == "HAPUS DATA MAHASISWA":
     # Menampilkan list data yang ada
     if len(myList) > 0:
         selected_name = st.selectbox("Pilih nama untuk dihapus datanya", classNames)
-        delete_btn = st.button("Hapus Data Wajah")
+        delete_btn = st.button("Hapus Data")
         
         if delete_btn:
             file_name = f"{selected_name}.png"
