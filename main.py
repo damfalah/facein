@@ -13,12 +13,12 @@ import time
 # inisiasi variabel
 FRAME_WINDOW = st.image([])
 
-menu = ["HOME", "DETEKSI KEHADIRAN", "REGISTER DATA", "DAFTAR PRESENSI", "HAPUS DATA MAHASISWA"]
+menu = ["Utama", "Rekam Kehadiran", "Rekam Wajah Mahasiswa", "Data Kehadiran", "Hapus Data Wajah Mahasiswa"]
 st.sidebar.image('static/images/IN.png', width=100)
 st.sidebar.title("faceIN")
 choice = st.sidebar.selectbox("Menu", menu)
 
-path = 'absensi'
+path = 'Data Wajah'
 images = []
 classNames = []
 myList = os.listdir(path)
@@ -56,9 +56,9 @@ def faceList(name, selected_course):
         dtString = now.strftime('%H:%M:%S')
         f.writelines(f'\n{name},{dtString},{dateToday},{selected_course}')
 
-# Deteksi Kehadiran
-if choice == 'DETEKSI KEHADIRAN': 
-    st.markdown("<h2 style='text-align: center; color: white;'>DETEKSI KEHADIRAN</h2>", unsafe_allow_html=True)
+# Rekam Kehadiran
+if choice == 'Rekam Kehadiran': 
+    st.markdown("<h2 style='text-align: center; color: white;'>Rekam Kehadiran</h2>", unsafe_allow_html=True)
     courses = ["Grafik Komputer 2", "Rekayasa Komputasional", "Konsep Data Mining", "Sistem Basis Data 2"]
     selected_course = st.selectbox("Pilih mata kuliah:", courses)
     st.write(f"Anda memilih mata kuliah: {selected_course}")
@@ -134,9 +134,9 @@ if choice == 'DETEKSI KEHADIRAN':
             cv2.waitKey(1)
 
 
-# Register data
-elif choice == 'REGISTER DATA':
-    st.markdown("<h2 style='text-align: center; color: white;'>REGISTER DATA</h2>", unsafe_allow_html=True)
+# Rekam Wajah Mahasiswa
+elif choice == 'Rekam Wajah Mahasiswa':
+    st.markdown("<h2 style='text-align: center; color: white;'>Rekam Wajah Mahasiswa</h2>", unsafe_allow_html=True)
     
     def load_image(image_file):
         img = Image.open(image_file)
@@ -149,7 +149,7 @@ elif choice == 'REGISTER DATA':
         return frame
 
     def check_existing_npm(npm):
-        for file in os.listdir("absensi"):
+        for file in os.listdir("Data Wajah"):
             if file.startswith(f"{npm}_"):
                 return True
         return False
@@ -174,15 +174,15 @@ elif choice == 'REGISTER DATA':
                     img_pil = Image.fromarray(img_rgb)
                     st.image(img_pil, caption="Captured Image")
                     
-                    if not os.path.exists("absensi"):
-                        os.makedirs("absensi")
+                    if not os.path.exists("Data Wajah"):
+                        os.makedirs("Data Wajah")
                     
-                    img_pil.save(os.path.join("absensi", f"{user_npm}_{user_name}.png"))
+                    img_pil.save(os.path.join("Data Wajah", f"{user_npm}_{user_name}.png"))
                     st.success(f"Saved Captured Image as {user_npm}_{user_name}.png")
 
-# Daftar Presensi
-elif choice == 'DAFTAR PRESENSI':
-    st.markdown("<h2 style='text-align: center; color: white;'>DAFTAR KEHADIRAN</h2>", unsafe_allow_html=True)
+# Data Kehadiran
+elif choice == 'Data Kehadiran':
+    st.markdown("<h2 style='text-align: center; color: white;'>Data Kehadiran</h2>", unsafe_allow_html=True)
     
     df = pd.read_csv('absensi.csv', header=None, names=['NPM', 'NAMA', 'WAKTU HADIR', 'TANGGAL', 'MATA KULIAH'])
     df['NPM'] = df['NPM'].astype(str)
@@ -194,7 +194,7 @@ elif choice == 'DAFTAR PRESENSI':
         unique_courses = df['MATA KULIAH'].unique()
         
         for course in unique_courses:
-            st.write(f"### Daftar Kehadiran Mata Kuliah {course}")
+            st.write(f"### Data Kehadiran Mata Kuliah {course}")
             course_df = df[df['MATA KULIAH'] == course]
             unique_dates = course_df['TANGGAL'].unique()
             
@@ -204,22 +204,21 @@ elif choice == 'DAFTAR PRESENSI':
                 st.write(date_df)
                 
                 # Tombol menghapus tabel
-                delete_button = st.button(f"Hapus Data {course} - {date}", key=f"{course}_{date}")
+                delete_button = st.button(f"Hapus Data Kehadiran {course} - {date}", key=f"{course}_{date}")
                 
                 if delete_button:
                     df = df[~((df['MATA KULIAH'] == course) & (df['TANGGAL'] == date))]
                     df.to_csv('absensi.csv', index=False, header=False)
-                    st.success(f"Data untuk {course} pada tanggal {date} berhasil dihapus.")
-                    st.experimental_rerun()
+                    st.success(f"Data kehadiran untuk {course} pada tanggal {date} berhasil dihapus.")
 
         # Tombol menghapus semua data
-        if st.button("Hapus Semua Data"):
+        if st.button("Hapus Seluruh Data Kehadiran"):
             open('absensi.csv', 'w').close()  # menghapus data file
-            st.success("Semua data berhasil dihapus.")
+            st.success("Seluruh data kehadiran berhasil dihapus.")
             st.experimental_rerun()
 
-# Home        
-elif choice == 'HOME':
+# Utama        
+elif choice == 'Utama':
     st.title("Selamat datang di faceIN!")
     
     st.write("""
@@ -229,22 +228,22 @@ elif choice == 'HOME':
     st.subheader("Cara Pemakaian Sistem:")
 
     st.write("""
-    - **Menu HOME** berisikan penjelasan dan cara pemakaian sistem.
-    - **Menu DETEKSI KEHADIRAN** digunakan untuk mencatat kehadiran mahasiswa menggunakan kamera.
-    - **Menu REGISTER DATA** berfungsi untuk mengambil data mahasiswa, dengan cara masukkan NPM dan Nama kemudian difoto agar data mahasiswa didapatkan.
-    - **Menu DAFTAR PRESENSI** merupakan menu yang menampilkan hasil dari pencatatan kehadiran mahasiswa yang dicatat sesuai dengan waktu terdeteksinya, dan dikumpulkan berdasarkan tanggal dan mata kuliahnya. Jika daftar kehadirannya sudah tidak diperlukan dapat dihapus dengan tombol yang disediakan, dapat dihapus tabel yang diinginkan atau keseluruhan tabel yang ada.
-    - **Menu HAPUS DATA MAHASISWA** berguna untuk menghapus data mahasiswa yang tersimpan, sekiranya ada kesalahan data saat registrasi atau data tidak diperlukan lagi datanya dapat dihapus.
+    - **Menu Utama** berisikan penjelasan dan cara pemakaian sistem.
+    - **Menu Rekam Kehadiran** digunakan untuk mencatat kehadiran mahasiswa menggunakan kamera.
+    - **Menu Rekam Wajah Mahasiswa** berfungsi untuk mengambil data mahasiswa, dengan cara masukkan NPM dan Nama kemudian difoto agar data mahasiswa didapatkan.
+    - **Menu Data Kehadiran** merupakan menu yang menampilkan hasil dari pencatatan kehadiran mahasiswa yang dicatat sesuai dengan waktu terdeteksinya, dan dikumpulkan berdasarkan tanggal dan mata kuliahnya. Jika Data Kehadirannya sudah tidak diperlukan dapat dihapus dengan tombol yang disediakan, dapat dihapus tabel yang diinginkan atau keseluruhan tabel yang ada.
+    - **Menu Hapus Data Wajah Mahasiswa** berguna untuk menghapus data wajah mahasiswa yang tersimpan, sekiranya ada kesalahan data saat registrasi atau data tidak diperlukan lagi datanya dapat dihapus.
     """)
 
     st.write("Dengan faceIN proses absensi menjadi lebih efisien dan akurat, sehingga Anda dapat fokus pada pengajaran dan pembelajaran yang lebih baik. Selamat menggunakan faceIN!")
 
-# Hapus Data Mahasiswa
-elif choice == "HAPUS DATA MAHASISWA":
-    st.markdown("<h2 style='text-align: center; color: white;'>HAPUS DATA MAHASISWA</h2>", unsafe_allow_html=True)
+# Hapus Data Wajah Mahasiswa
+elif choice == "Hapus Data Wajah Mahasiswa":
+    st.markdown("<h2 style='text-align: center; color: white;'>Hapus Data Wajah Mahasiswa</h2>", unsafe_allow_html=True)
     
     # function menghapus data wajah
     def delete_face_data(file_name):
-        file_path = os.path.join("absensi", file_name)
+        file_path = os.path.join("Data Wajah", file_name)
         if os.path.exists(file_path):
             os.remove(file_path)
             return True
